@@ -1,8 +1,8 @@
-## D3.js Flight Connections Map
+# D3.js Flight Connections Map
 
 Example of D3.js usage to render flights connections map
 
-## Installation and running
+# Installation and running
 
-# npm install
-# gulp watch
+npm install
+gulp watch
