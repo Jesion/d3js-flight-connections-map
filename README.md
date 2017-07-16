@@ -4,5 +4,5 @@ Example of D3.js usage to render flights connections map
 
 # Installation and running
 
-npm install
-gulp watch
+1. npm install
+2. gulp watch
