@@ -83,8 +83,7 @@
       ];
       var svg;
       var projection;
-      var currConn = 0;
-      var flightDuration = 4000;
+      var speed = 200;//km/sec
       var tooltip = d3.select('#map').append('div')	
           .attr('class', 'tooltipTarget')				
           .style('opacity', 0);
@@ -97,8 +96,21 @@
         return 'M' + d.source.x + ',' + d.source.y + 'A' + dr + ',' + dr + spath + d.target.x + ',' + d.target.y;
       }
 
-      function drawConnection(svg, connection, index, arc, targetName, projection) {
-          var arc = svg
+      function calculateDistance(lat1, lon1, lat2, lon2) {
+        var p = 0.017453292519943295;
+        var c = Math.cos;
+        var a = 0.5 - c((lat2 - lat1) * p)/2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))/2;
+        return 12742 * Math.asin(Math.sqrt(a));
+      }
+
+      function calculateDuration(distance) {
+        return (distance / this.speed) * 1000;
+      }
+
+      function drawConnection(svg, connection, index, arc, targetName, targetGeo, projection) {
+        var distance = calculateDistance(sourceGeo[1], sourceGeo[0], targetGeo[1], targetGeo[0]);
+        var duration = calculateDuration(distance);
+        var arc = svg
           .append('path')
           .datum(connection)
           .attr('class', 'arc' + index)
@@ -117,7 +129,7 @@
           .style('stroke-width', 2)
           .style('fill', 'none')
           .transition()
-          .duration(flightDuration)
+          .duration(duration)
           .attrTween('stroke-dasharray', function() {
               var len = this.getTotalLength();
               return function(t) {
@@ -190,31 +202,31 @@
                         for (i = 0; i < targets.length; i++) { 
                           svg.selectAll('.arc' + i).remove();
                         }
-                        drawConnections(sourceGeo, targets, svg, projection);
+                      }
+                      var nextIndex = index + 1;
+                      if (nextIndex < targets.length) {
+                        draw(nextIndex);
+                      } else {
+                        draw(0);
                       }
                     })
                 });
           });
       }
 
-      function drawDelayed(arc, counter, svg, sourceGeo, targets, projection) {
-        if (counter < targets.length) {
-          setTimeout(function() {
-              var target = targets[counter];
-              var srcGeo = projection(sourceGeo);
-              var tarGeo = projection(target.coord);
-              var connectionCoord = [ srcGeo, tarGeo ];
-              var targetName = target.name;
-              this.drawConnection(svg, connectionCoord, counter, arc, targetName, projection);
-              counter++;
-              drawDelayed(arc, counter, svg, sourceGeo, targets, projection);
-          }, counter == 0 ? 0 : flightDuration);
-        }
+      function drawConnections(sourceGeo, targets, svg, projection) {
+        draw(0);
       }
 
-      function drawConnections(sourceGeo, targets, svg, projection) {
+      function draw(index) {
         var arc = svg.selectAll('path');  
-        this.drawDelayed(arc, 0, svg, sourceGeo, targets, projection);
+        var target = this.targets[index];
+        var srcGeo = projection(this.sourceGeo);
+        var tarGeo = projection(target.coord);
+        var connectionCoord = [ srcGeo, tarGeo ];
+        var targetName = target.name;
+        var targetGeo = target.coord;
+        this.drawConnection(this.svg, connectionCoord, index, arc, targetName, targetGeo, projection);
       }
       
       function drawMap(sourceName, sourceGeo, targets) {
@@ -271,7 +283,9 @@
             tooltip.transition()
               .duration(700)
               .style('opacity', 0)
-          })
+          });
+        this.svg = svg;
+        this.projection = projection;
         this.drawConnections(sourceGeo, targets, svg, projection);
       };
 
