@@ -112,7 +112,7 @@
         var originPos = projection(this.originGeo);
         var destinationPos = projection(destination.coord);
         var connection = [ originPos, destinationPos ];
-        var desinationName = destination.name;
+        var destinationName = destination.name;
         var originGeo = this.originGeo;
         var destinationGeo = destination.coord;
         var svg = this.svg;
@@ -175,8 +175,8 @@
                 .style('fill', 'steelblue')
                 .style('fill-opacity', '1')
                 .on('mouseover', function (d) {
-                  tooltip.html('<span style="color:white">' + targetName + '</span>')
-                    .attr('class', 'tooltipTarget')
+                  tooltip.html('<span style="color:white">' + destinationName + '</span>')
+                    .attr('class', 'tooltipDestination')
                     .style('left', d[0] + 12 + 'px')
                     .style('top', d[1] - 20 + 'px')
                     .transition()
