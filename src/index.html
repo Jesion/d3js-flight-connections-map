@@ -83,7 +83,7 @@
       ];
       var svg;
       var projection;
-      var speed = 200;//km/sec
+      var speed = 2800;//km/sec
       var tooltip = d3.select('#map').append('div')	
           .attr('class', 'tooltipTarget')				
           .style('opacity', 0);
@@ -107,7 +107,7 @@
         return (distance / this.speed) * 1000;
       }
 
-      function drawConnection(svg, connection, index, arc, targetName, targetGeo, projection) {
+      function drawConnection(svg, connection, index, targetName, targetGeo, projection) {
         var distance = calculateDistance(sourceGeo[1], sourceGeo[0], targetGeo[1], targetGeo[0]);
         var duration = calculateDuration(distance);
         var arc = svg
@@ -219,14 +219,13 @@
       }
 
       function draw(index) {
-        var arc = svg.selectAll('path');  
         var target = this.targets[index];
         var srcGeo = projection(this.sourceGeo);
         var tarGeo = projection(target.coord);
         var connectionCoord = [ srcGeo, tarGeo ];
         var targetName = target.name;
         var targetGeo = target.coord;
-        this.drawConnection(this.svg, connectionCoord, index, arc, targetName, targetGeo, projection);
+        this.drawConnection(this.svg, connectionCoord, index, targetName, targetGeo, projection);
       }
       
       function drawMap(sourceName, sourceGeo, targets) {
@@ -251,7 +250,7 @@
           .attr('d', path)  
           return;
         });
-        var source = svg.selectAll('circleSource')
+        var source = svg.selectAll('circleSource');
           source
           .data([sourceGeo]).enter()
           .append('circle')
