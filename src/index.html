@@ -13,7 +13,7 @@
             fill: darkgrey;
         }
 
-        div.tooltipTarget {
+        div.tooltipDestination {
           position: absolute;
           text-align: center;
           width: 60px;
@@ -27,7 +27,7 @@
           padding-top: 5px;
         }
 
-        div.tooltipSource {
+        div.tooltipOrigin {
           position: absolute;
           text-align: center;
           width: 60px;
@@ -47,9 +47,9 @@
     <script src="http://d3js.org/d3.v4.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
     <script>
-      var sourceGeo = [16.8286, 52.4200];
-      var sourceName = 'POZ';
-      var targets = [
+      var originGeo = [16.8286, 52.4200];
+      var originName = 'POZ';
+      var destinations = [
           {'coord': [20.9679, 52.1672], 'name': 'WAW'},
           {'coord': [23.9569, 49.8134], 'name': 'LWO'},
           {'coord': [30.4433, 50.4120], 'name': 'IEV'},
@@ -83,17 +83,17 @@
       ];
       var svg;
       var projection;
-      var speed = 200;//km/sec
+      var speed = 2800;//km/sec
       var tooltip = d3.select('#map').append('div')	
-          .attr('class', 'tooltipTarget')				
+          .attr('class', 'tooltipDestination')				
           .style('opacity', 0);
 
       function linkArc(d, s) {
-        var dx = d.target.x - d.source.x;
-        var dy = d.target.y - d.source.y;
+        var dx = d.destination.x - d.origin.x;
+        var dy = d.destination.y - d.origin.y;
         var dr = Math.sqrt(dx * dx + dy * dy);
         var spath = s == false ? ' 0 0,0 ' : ' 0 0,1 ';
-        return 'M' + d.source.x + ',' + d.source.y + 'A' + dr + ',' + dr + spath + d.target.x + ',' + d.target.y;
+        return 'M' + d.origin.x + ',' + d.origin.y + 'A' + dr + ',' + dr + spath + d.destination.x + ',' + d.destination.y;
       }
 
       function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -107,8 +107,8 @@
         return (distance / this.speed) * 1000;
       }
 
-      function drawConnection(svg, connection, index, arc, targetName, targetGeo, projection) {
-        var distance = calculateDistance(sourceGeo[1], sourceGeo[0], targetGeo[1], targetGeo[0]);
+      function drawConnection(svg, connection, index, destinationName, destinationGeo, projection) {
+        var distance = calculateDistance(originGeo[1], originGeo[0], destinationGeo[1], destinationGeo[0]);
         var duration = calculateDuration(distance);
         var arc = svg
           .append('path')
@@ -116,11 +116,11 @@
           .attr('class', 'arc' + index)
           .attr('d', function(coordinates) {
               var d = {
-                  source: { x: coordinates[0][0], y: coordinates[0][1]},
-                  target: { x: coordinates[1][0], y: coordinates[1][1]}
+                  origin: { x: coordinates[0][0], y: coordinates[0][1]},
+                  destination: { x: coordinates[1][0], y: coordinates[1][1]}
               };
               var s = false;
-              if (d.target.x > d.source.x) {
+              if (d.destination.x > d.origin.x) {
                   s = true;
               }
               return linkArc(d, s);
@@ -195,16 +195,16 @@
                     .style('stroke-opacity', '0')
                     .style('stroke-width', '1')
                     .on('end', function (d) {
-                      if (index === targets.length - 1) {
+                      if (index === destinations.length - 1) {
                         svg.selectAll('.destCircleInner').remove();
                         svg.selectAll('.destCircleOuter').remove();
                         svg.selectAll('.destCircleMouse').remove();
-                        for (i = 0; i < targets.length; i++) { 
+                        for (i = 0; i < destinations.length; i++) { 
                           svg.selectAll('.arc' + i).remove();
                         }
                       }
                       var nextIndex = index + 1;
-                      if (nextIndex < targets.length) {
+                      if (nextIndex < destinations.length) {
                         draw(nextIndex);
                       } else {
                         draw(0);
@@ -214,22 +214,19 @@
           });
       }
 
-      function drawConnections(sourceGeo, targets, svg, projection) {
+      function drawConnections() {
         draw(0);
       }
 
       function draw(index) {
-        var arc = svg.selectAll('path');  
-        var target = this.targets[index];
-        var srcGeo = projection(this.sourceGeo);
-        var tarGeo = projection(target.coord);
-        var connectionCoord = [ srcGeo, tarGeo ];
-        var targetName = target.name;
-        var targetGeo = target.coord;
-        this.drawConnection(this.svg, connectionCoord, index, arc, targetName, targetGeo, projection);
+        var destination = this.destinations[index];
+        var originPos = projection(this.originGeo);
+        var destinationPos = projection(destination.coord);
+        var connection = [ originPos, destinationPos ];
+        this.drawConnection(this.svg, connection, index, destination.name, destination.coord, projection);
       }
       
-      function drawMap(sourceName, sourceGeo, targets) {
+      function drawMap(originName, originGeo, destinations) {
         var countries, height, path, projection, scale, svg, width;
         var width = 800;
         var height = 800;
@@ -251,28 +248,28 @@
           .attr('d', path)  
           return;
         });
-        var source = svg.selectAll('circleSource')
+        var source = svg.selectAll('circleOrigin');
           source
-          .data([sourceGeo]).enter()
+          .data([originGeo]).enter()
           .append('circle')
           .attr('cx', function (d) { return projection(d)[0]; })
           .attr('cy', function (d) { return projection(d)[1]; })
           .attr('r', '3px')
           .style('opacity', 1)
           .attr('fill', 'green')
-          .attr('class', 'circleSource')
+          .attr('class', 'circleOrigin')
           source
-          .data([sourceGeo]).enter()
+          .data([originGeo]).enter()
           .append('circle')
           .attr('cx', function (d) { return projection(d)[0]; })
           .attr('cy', function (d) { return projection(d)[1]; })
           .attr('r', '10px')
           .style('opacity', 0.05)
           .attr('fill', 'black')
-          .attr('class', 'circleSource')
+          .attr('class', 'circleOrigin')
           .on('mouseover', function (d) {
-            tooltip.html('<span style="color:white">' + sourceName + '</span>')
-              .attr('class', 'tooltipSource')
+            tooltip.html('<span style="color:white">' + originName + '</span>')
+              .attr('class', 'tooltipOrigin')
               .style('left', projection(d)[0] + 12 + 'px')
               .style('top', projection(d)[1] - 20 + 'px')
               .transition()
@@ -286,10 +283,9 @@
           });
         this.svg = svg;
         this.projection = projection;
-        this.drawConnections(sourceGeo, targets, svg, projection);
+        this.drawConnections();
       };
-
-      this.drawMap(this.sourceName, this.sourceGeo, this.targets);
+      this.drawMap(this.originName, this.originGeo, this.destinations);
     </script>
   </body>
 </html>
