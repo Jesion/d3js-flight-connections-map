@@ -107,7 +107,15 @@
         return (distance / this.speed) * 1000;
       }
 
-      function drawConnection(svg, connection, index, destinationName, destinationGeo, projection) {
+      function drawConnection(index) {
+        var destination = this.destinations[index];
+        var originPos = projection(this.originGeo);
+        var destinationPos = projection(destination.coord);
+        var connection = [ originPos, destinationPos ];
+        var desinationName = destination.name;
+        var originGeo = this.originGeo;
+        var destinationGeo = destination.coord;
+        var svg = this.svg;
         var distance = calculateDistance(originGeo[1], originGeo[0], destinationGeo[1], destinationGeo[0]);
         var duration = calculateDuration(distance);
         var arc = svg
@@ -205,9 +213,9 @@
                       }
                       var nextIndex = index + 1;
                       if (nextIndex < destinations.length) {
-                        draw(nextIndex);
+                        drawConnection(nextIndex);
                       } else {
-                        draw(0);
+                        drawConnection(0);
                       }
                     })
                 });
@@ -215,15 +223,7 @@
       }
 
       function drawConnections() {
-        draw(0);
-      }
-
-      function draw(index) {
-        var destination = this.destinations[index];
-        var originPos = projection(this.originGeo);
-        var destinationPos = projection(destination.coord);
-        var connection = [ originPos, destinationPos ];
-        this.drawConnection(this.svg, connection, index, destination.name, destination.coord, projection);
+        drawConnection(0);
       }
       
       function drawMap(originName, originGeo, destinations) {
