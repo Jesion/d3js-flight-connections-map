@@ -4,7 +4,7 @@ Example of D3.js usage to render flights connections map
 
 Demo site: http://d3js.robertjesionek.com/flight-connections-map/
 
-EN: © EuroGeographics for the administrative boundaries
+© EuroGeographics for the administrative boundaries
 
 # Installation and running
 
